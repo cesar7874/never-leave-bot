@@ -40,7 +40,7 @@ async def play_sound():
                 vc.stop()
             # FFmpegOpusAudio encodes opus via ffmpeg — no opus library needed
             source = await discord.FFmpegOpusAudio.from_probe(
-                SOUND_FILE, executable=FFMPEG_PATH
+                SOUND_FILE, executable=FFMPEG_PATH, bitrate=128
             )
             vc.play(source)
             print("[♪] Playing sound!")
