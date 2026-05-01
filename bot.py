@@ -2,13 +2,32 @@ import discord
 from discord.ext import commands, tasks
 import asyncio
 import os
+import ctypes
+import ctypes.util
 import imageio_ffmpeg
+
+# ── Load Opus ────────────────────────────────────────────────────────────────
+def load_opus():
+    if discord.opus.is_loaded():
+        return
+    opus_name = ctypes.util.find_library("opus")
+    if opus_name:
+        discord.opus.load_opus(opus_name)
+    else:
+        # Try common names on Linux
+        for name in ["libopus.so.0", "libopus.so", "opus"]:
+            try:
+                discord.opus.load_opus(name)
+                break
+            except:
+                continue
+
+load_opus()
 
 # ── Config ──────────────────────────────────────────────────────────────────
 TOKEN = os.getenv("DISCORD_TOKEN")
 TARGET_CHANNEL_ID = int(os.getenv("VOICE_CHANNEL_ID", "0"))
 SOUND_FILE = "Chouni Laugh.wav"
-
 FFMPEG_PATH = imageio_ffmpeg.get_ffmpeg_exe()
 
 # ── Bot setup ────────────────────────────────────────────────────────────────
@@ -24,10 +43,8 @@ async def join_target_channel():
     if channel is None or not isinstance(channel, discord.VoiceChannel):
         print(f"[!] Channel {TARGET_CHANNEL_ID} not found or is not a voice channel.")
         return
-
     guild = channel.guild
     vc = guild.voice_client
-
     if vc is None:
         await channel.connect(reconnect=True)
         print(f"[+] Joined '{channel.name}'")
@@ -49,6 +66,7 @@ async def play_sound():
 @bot.event
 async def on_ready():
     print(f"[✓] Logged in as {bot.user} ({bot.user.id})")
+    print(f"[✓] Opus loaded: {discord.opus.is_loaded()}")
     await join_target_channel()
     watchdog.start()
     sound_loop.start()
