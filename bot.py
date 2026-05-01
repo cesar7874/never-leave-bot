@@ -41,10 +41,12 @@ async def play_sound():
             source = discord.FFmpegOpusAudio(
                 SOUND_FILE,
                 executable=FFMPEG_PATH,
-                bitrate=96
+                bitrate=96,
+                before_options="-af aresample=48000"
             )
             vc.play(source)
             print("[♪] Playing sound!")
+
 # ── Events ───────────────────────────────────────────────────────────────────
 @bot.event
 async def on_ready():
