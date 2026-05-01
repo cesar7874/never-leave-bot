@@ -42,7 +42,7 @@ async def play_sound():
                 SOUND_FILE,
                 executable=FFMPEG_PATH,
                 bitrate=96,
-                options="-af aresample=resampler=swr:osr=48000"
+                before_options="-af aresample=48000"
             )
             vc.play(source)
             print("[♪] Playing sound!")
