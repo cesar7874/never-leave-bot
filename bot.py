@@ -2,27 +2,7 @@ import discord
 from discord.ext import commands, tasks
 import asyncio
 import os
-import ctypes
-import ctypes.util
 import imageio_ffmpeg
-
-# ── Load Opus ────────────────────────────────────────────────────────────────
-def load_opus():
-    if discord.opus.is_loaded():
-        return
-    opus_name = ctypes.util.find_library("opus")
-    if opus_name:
-        discord.opus.load_opus(opus_name)
-    else:
-        # Try common names on Linux
-        for name in ["libopus.so.0", "libopus.so", "opus"]:
-            try:
-                discord.opus.load_opus(name)
-                break
-            except:
-                continue
-
-load_opus()
 
 # ── Config ──────────────────────────────────────────────────────────────────
 TOKEN = os.getenv("DISCORD_TOKEN")
@@ -58,7 +38,10 @@ async def play_sound():
         if vc and vc.is_connected():
             if vc.is_playing():
                 vc.stop()
-            source = discord.FFmpegPCMAudio(SOUND_FILE, executable=FFMPEG_PATH)
+            # FFmpegOpusAudio encodes opus via ffmpeg — no opus library needed
+            source = await discord.FFmpegOpusAudio.from_probe(
+                SOUND_FILE, executable=FFMPEG_PATH
+            )
             vc.play(source)
             print("[♪] Playing sound!")
 
@@ -66,7 +49,6 @@ async def play_sound():
 @bot.event
 async def on_ready():
     print(f"[✓] Logged in as {bot.user} ({bot.user.id})")
-    print(f"[✓] Opus loaded: {discord.opus.is_loaded()}")
     await join_target_channel()
     watchdog.start()
     sound_loop.start()
