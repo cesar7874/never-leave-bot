@@ -7,7 +7,7 @@ import imageio_ffmpeg
 # ── Config ──────────────────────────────────────────────────────────────────
 TOKEN = os.getenv("DISCORD_TOKEN")
 TARGET_CHANNEL_ID = int(os.getenv("VOICE_CHANNEL_ID", "0"))
-SOUND_FILE = "Chouni Laugh.wav"
+SOUND_FILE = "Chouni Laugh v2 (consolidated).wav"
 FFMPEG_PATH = imageio_ffmpeg.get_ffmpeg_exe()
 
 # ── Bot setup ────────────────────────────────────────────────────────────────
