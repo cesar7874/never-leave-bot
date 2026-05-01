@@ -38,12 +38,16 @@ async def play_sound():
         if vc and vc.is_connected():
             if vc.is_playing():
                 vc.stop()
-            source = discord.FFmpegOpusAudio(
+            source = discord.FFmpegPCMAudio(
                 SOUND_FILE,
                 executable=FFMPEG_PATH,
-                bitrate=96
+                pipe=False,
+                stderr=None,
+                before_options="-re",
+                options="-vn -ar 48000 -ac 2 -f s16le"
             )
-            vc.play(source)
+            transformed = discord.PCMVolumeTransformer(source, volume=1.0)
+            vc.play(transformed)
             print("[♪] Playing sound!")
 
 # ── Events ───────────────────────────────────────────────────────────────────
@@ -110,5 +114,4 @@ if __name__ == "__main__":
         raise ValueError("Set the DISCORD_TOKEN environment variable.")
     if TARGET_CHANNEL_ID == 0:
         raise ValueError("Set the VOICE_CHANNEL_ID environment variable.")
-    bot.run(TOKEN)
     bot.run(TOKEN)
