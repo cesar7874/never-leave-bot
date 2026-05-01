@@ -26,7 +26,7 @@ async def join_target_channel():
     guild = channel.guild
     vc = guild.voice_client
     if vc is None:
-        await channel.connect(reconnect=True)
+        await channel.connect(reconnect=True, self_deaf=True)
         print(f"[+] Joined '{channel.name}'")
     elif vc.channel != channel:
         await vc.move_to(channel)
@@ -38,16 +38,13 @@ async def play_sound():
         if vc and vc.is_connected():
             if vc.is_playing():
                 vc.stop()
-            source = discord.FFmpegPCMAudio(
+            await asyncio.sleep(1)  # small buffer before playing
+            source = discord.FFmpegOpusAudio(
                 SOUND_FILE,
                 executable=FFMPEG_PATH,
-                pipe=False,
-                stderr=None,
-                before_options="-re",
-                options="-vn -ar 48000 -ac 2 -f s16le"
+                bitrate=96
             )
-            transformed = discord.PCMVolumeTransformer(source, volume=1.0)
-            vc.play(transformed)
+            vc.play(source)
             print("[♪] Playing sound!")
 
 # ── Events ───────────────────────────────────────────────────────────────────
@@ -76,7 +73,7 @@ async def watchdog():
             print("[watchdog] Not connected — rejoining...")
             await join_target_channel()
 
-# ── Sound loop ───────────────────────────────────────────────────────────────
+# ── Sound loop — waits 3 hours before first play ─────────────────────────────
 @tasks.loop(hours=3)
 async def sound_loop():
     await play_sound()
@@ -84,6 +81,7 @@ async def sound_loop():
 @sound_loop.before_loop
 async def before_sound_loop():
     await bot.wait_until_ready()
+    await asyncio.sleep(10800)  # wait 3 hours before first play
 
 # ── Commands ─────────────────────────────────────────────────────────────────
 @bot.command(name="join")
@@ -99,7 +97,7 @@ async def leave_cmd(ctx):
     if vc:
         watchdog.stop()
         await vc.disconnect()
-        await ctx.send("👋 Left the channel. (watchdog paused — use `!join` to re-enable)")
+        await ctx.send("👋 Left the channel.")
     else:
         await ctx.send("I'm not in a voice channel.")
 
