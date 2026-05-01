@@ -38,13 +38,13 @@ async def play_sound():
         if vc and vc.is_connected():
             if vc.is_playing():
                 vc.stop()
-            # FFmpegOpusAudio encodes opus via ffmpeg — no opus library needed
-            source = await discord.FFmpegOpusAudio.from_probe(
-                SOUND_FILE, executable=FFMPEG_PATH, bitrate=128
+            source = discord.FFmpegOpusAudio(
+                SOUND_FILE,
+                executable=FFMPEG_PATH,
+                bitrate=96
             )
             vc.play(source)
             print("[♪] Playing sound!")
-
 # ── Events ───────────────────────────────────────────────────────────────────
 @bot.event
 async def on_ready():
