@@ -4,8 +4,9 @@ import asyncio
 import os
 
 # ── Config ──────────────────────────────────────────────────────────────────
-TOKEN = os.getenv("DISCORD_TOKEN")          # set in your environment
-TARGET_CHANNEL_ID = int(os.getenv("VOICE_CHANNEL_ID", "0"))  # voice channel ID
+TOKEN = os.getenv("DISCORD_TOKEN")
+TARGET_CHANNEL_ID = int(os.getenv("VOICE_CHANNEL_ID", "0"))
+SOUND_FILE = "Chouni Laugh.wav"  # name of your audio file — must be in the same folder
 
 # ── Bot setup ────────────────────────────────────────────────────────────────
 intents = discord.Intents.default()
@@ -32,12 +33,24 @@ async def join_target_channel():
         await vc.move_to(channel)
         print(f"[+] Moved to '{channel.name}'")
 
+async def play_sound():
+    """Play the sound file in the current voice channel."""
+    for guild in bot.guilds:
+        vc = guild.voice_client
+        if vc and vc.is_connected():
+            if vc.is_playing():
+                vc.stop()
+            source = discord.FFmpegPCMAudio(SOUND_FILE)
+            vc.play(source)
+            print("[♪] Playing sound!")
+
 # ── Events ───────────────────────────────────────────────────────────────────
 @bot.event
 async def on_ready():
     print(f"[✓] Logged in as {bot.user} ({bot.user.id})")
     await join_target_channel()
     watchdog.start()
+    sound_loop.start()
 
 @bot.event
 async def on_voice_state_update(member, before, after):
@@ -59,6 +72,16 @@ async def watchdog():
             print("[watchdog] Not connected — rejoining...")
             await join_target_channel()
 
+# ── Sound loop ───────────────────────────────────────────────────────────────
+@tasks.loop(hours=3)
+async def sound_loop():
+    """Play the sound every 3 hours."""
+    await play_sound()
+
+@sound_loop.before_loop
+async def before_sound_loop():
+    await bot.wait_until_ready()
+
 # ── Commands ─────────────────────────────────────────────────────────────────
 @bot.command(name="join")
 @commands.has_permissions(administrator=True)
@@ -78,6 +101,13 @@ async def leave_cmd(ctx):
         await ctx.send("👋 Left the channel. (watchdog paused — use `!join` to re-enable)")
     else:
         await ctx.send("I'm not in a voice channel.")
+
+@bot.command(name="play")
+@commands.has_permissions(administrator=True)
+async def play_cmd(ctx):
+    """!play — manually trigger the sound."""
+    await play_sound()
+    await ctx.send("🔊 Playing sound!")
 
 # ── Run ───────────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
