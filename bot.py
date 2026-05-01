@@ -41,8 +41,7 @@ async def play_sound():
             source = discord.FFmpegOpusAudio(
                 SOUND_FILE,
                 executable=FFMPEG_PATH,
-                bitrate=96,
-                before_options="-af aresample=48000"
+                bitrate=96
             )
             vc.play(source)
             print("[♪] Playing sound!")
@@ -111,4 +110,5 @@ if __name__ == "__main__":
         raise ValueError("Set the DISCORD_TOKEN environment variable.")
     if TARGET_CHANNEL_ID == 0:
         raise ValueError("Set the VOICE_CHANNEL_ID environment variable.")
+    bot.run(TOKEN)
     bot.run(TOKEN)
