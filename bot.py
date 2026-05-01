@@ -103,7 +103,6 @@ async def leave_cmd(ctx):
         await ctx.send("I'm not in a voice channel.")
 
 @bot.command(name="play")
-@commands.has_permissions(administrator=True)
 async def play_cmd(ctx):
     """!play — manually trigger the sound."""
     await play_sound()
